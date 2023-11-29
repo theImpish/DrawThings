@@ -3,27 +3,35 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>
+#include <chrono>
+#include <math.h>
 
 // Shaders
 const GLchar* vertexSource = R"glsl(
 	#version 150 core
 	in vec2 position;
+    in vec3 color;
+    out vec3 Color;
 	void main()
 	{
+        Color = color;
 		gl_Position = vec4(position, 0.0, 1.0);
 	}
 )glsl";
 const GLchar* fragmentSource = R"glsl(
 	#version 150 core
+    in vec3 Color;
 	out vec4 outColor;
 	void main()
 	{
-		outColor = vec4(1.0, 1.0, 1.0, 1.0);
+		outColor = vec4(Color, 1.0);
 	}
 )glsl";
 
 int main()
 {
+    auto t_start = std::chrono::high_resolution_clock::now();
+
     glfwInit();
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -52,9 +60,9 @@ int main()
     glGenBuffers(1, &vbo);
 
     GLfloat vertices[] = {
-        0.0f,  0.5f,
-        0.5f, -0.5f,
-       -0.5f, -0.5f
+         0.0f,  0.5f, 1.0f, 0.0f, 0.0f, // Vertex 1: Red
+         0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // Vertex 2: Green
+        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f  // Vertex 3: Blue
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -65,7 +73,7 @@ int main()
     glShaderSource(vertexShader, 1, &vertexSource, NULL);
     glCompileShader(vertexShader);
 
-    // Create and compile the fragmetn shader
+    // Create and compile the fragment shader
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
     glCompileShader(fragmentShader);
@@ -81,13 +89,18 @@ int main()
     // Specify the Layout of the vertex data
     GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
     glEnableVertexAttribArray(posAttrib);
-    glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), 0);
+
+    GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
+    glEnableVertexAttribArray(colAttrib);
+    glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+
 
     while (!glfwWindowShouldClose(window))
     {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GL_TRUE);
-               
+
         // Clear the screen to black
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
