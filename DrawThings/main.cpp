@@ -24,7 +24,7 @@ const GLchar* fragmentSource = R"glsl(
 	out vec4 outColor;
 	void main()
 	{
-		outColor = vec4(Color, 1.0);
+		outColor = vec4(1.0-Color, 1.0);
 	}
 )glsl";
 
@@ -50,7 +50,7 @@ int main()
     glewExperimental = GL_TRUE;
     glewInit();
 
-    // Create Vertex Array Objec
+    // Create Vertex Array ObjecT
     GLuint vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -60,13 +60,25 @@ int main()
     glGenBuffers(1, &vbo);
 
     GLfloat vertices[] = {
-         0.0f,  0.5f, 1.0f, 0.0f, 0.0f, // Vertex 1: Red
-         0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // Vertex 2: Green
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f  // Vertex 3: Blue
+    -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // Top-left
+     0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // Top-right
+     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // Bottom-right
+    -0.5f, -0.5f, 1.0f, 1.0f, 1.0f // Bottom-left
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    GLuint elements[] = {
+        0,1,2,
+        2,3,0
+    };
+
+    GLuint ebo;
+    glGenBuffers(1, &ebo);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
     // Create and compile the vertex shader
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -106,7 +118,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw a triangle from the 3 vertices
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
